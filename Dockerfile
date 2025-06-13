@@ -12,6 +12,7 @@ ENV LLVM_VERSION=3.4 \
     ENABLE_OPTIMIZED=1 \
     KLEE_UCLIBC=klee_0_9_29 \
     KLEE_SRC=/home/klee/klee_src \
+    KLEE_UNIT_TESTS=0 \
     COVERAGE=0 \
     BUILD_DIR=/home/klee/klee_build \
     USE_CMAKE=1 \
@@ -45,8 +46,6 @@ RUN apt-get update && \
         binutils && \
     pip3 install -U lit tabulate && \
     update-alternatives --install /usr/bin/python python /usr/bin/python3 50 && \
-    ( wget -O - http://download.opensuse.org/repositories/home:delcypher:z3/xUbuntu_14.04/Release.key | apt-key add - ) && \
-    echo 'deb http://download.opensuse.org/repositories/home:/delcypher:/z3/xUbuntu_14.04/ /' >> /etc/apt/sources.list.d/z3.list && \
     apt-get update
 
 # Create ``klee`` user for container with password ``klee``.

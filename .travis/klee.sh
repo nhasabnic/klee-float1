@@ -30,7 +30,7 @@ fi
 # klee-uclibc
 ###############################################################################
 if [ "${KLEE_UCLIBC}" != "0" ]; then
-    git clone --depth 1 -b ${KLEE_UCLIBC} git://github.com/klee/klee-uclibc.git
+    git clone --depth 1 -b ${KLEE_UCLIBC} https://github.com/klee/klee-uclibc.git
     cd klee-uclibc
     ./configure --make-llvm-lib --with-cc "${KLEE_CC}" --with-llvm-config /usr/bin/llvm-config-${LLVM_VERSION}
     make
@@ -180,36 +180,40 @@ fi
 ###############################################################################
 # Unit tests
 ###############################################################################
-if [ "X${USE_CMAKE}" == "X1" ]; then
-  make unittests
-else
-  # The unittests makefile doesn't seem to have been packaged so get it from SVN
-  sudo mkdir -p /usr/lib/llvm-${LLVM_VERSION}/build/unittests/
-  svn export  http://llvm.org/svn/llvm-project/llvm/branches/${SVN_BRANCH}/unittests/Makefile.unittest \
-      ../Makefile.unittest
-  sudo mv ../Makefile.unittest /usr/lib/llvm-${LLVM_VERSION}/build/unittests/
+if [ "X${KLEE_UNIT_TESTS}" == "X1" ]; then
+  if [ "X${USE_CMAKE}" == "X1" ]; then
+    make unittests
+  else
+    # The unittests makefile doesn't seem to have been packaged so get it from SVN
+    sudo mkdir -p /usr/lib/llvm-${LLVM_VERSION}/build/unittests/
+    svn export  http://llvm.org/svn/llvm-project/llvm/branches/${SVN_BRANCH}/unittests/Makefile.unittest \
+        ../Makefile.unittest
+    sudo mv ../Makefile.unittest /usr/lib/llvm-${LLVM_VERSION}/build/unittests/
 
-  make unittests \
-      DISABLE_ASSERTIONS=${DISABLE_ASSERTIONS} \
-      ENABLE_OPTIMIZED=${ENABLE_OPTIMIZED} \
-      ENABLE_SHARED=0
+    make unittests \
+        DISABLE_ASSERTIONS=${DISABLE_ASSERTIONS} \
+        ENABLE_OPTIMIZED=${ENABLE_OPTIMIZED} \
+        ENABLE_SHARED=0
+  fi
 fi
 
 ###############################################################################
 # lit tests
 ###############################################################################
-if [ "X${USE_CMAKE}" == "X1" ]; then
-  make systemtests
-else
-  # Note can't use ``make check`` because llvm-lit is not available
-  cd test
-  # The build system needs to generate this file before we can run lit
-  make lit.site.cfg \
-      DISABLE_ASSERTIONS=${DISABLE_ASSERTIONS} \
-      ENABLE_OPTIMIZED=${ENABLE_OPTIMIZED} \
-      ENABLE_SHARED=0
-  cd ../
-  lit -v test/
+if [ "X${KLEE_UNIT_TESTS}" == "X1" ]; then
+  if [ "X${USE_CMAKE}" == "X1" ]; then
+    make systemtests
+  else
+    # Note can't use ``make check`` because llvm-lit is not available
+    cd test
+    # The build system needs to generate this file before we can run lit
+    make lit.site.cfg \
+        DISABLE_ASSERTIONS=${DISABLE_ASSERTIONS} \
+        ENABLE_OPTIMIZED=${ENABLE_OPTIMIZED} \
+        ENABLE_SHARED=0
+    cd ../
+    lit -v test/
+  fi
 fi
 
 # If metaSMT is the only solver, then rerun lit tests with non-default metaSMT backends
